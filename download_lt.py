@@ -27,7 +27,7 @@ logger.setLevel(logging.INFO)
 BASE_URL = os.environ.get('LTP_DOWNLOAD_HOST', 'https://www.languagetool.org/download/')
 FILENAME = 'LanguageTool-{version}.zip'
 PACKAGE_PATH = 'language_check'
-LATEST_VERSION = '5.3'
+LATEST_VERSION = '3.2'
 
 JAVA_VERSION_REGEX = re.compile(
     r'^(?:java|openjdk) version "(?P<major1>\d+)(|\.(?P<major2>\d+)\.[^"]+)"',
