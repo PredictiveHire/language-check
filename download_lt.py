@@ -128,7 +128,7 @@ def download_zip(url, directory):
     # Tell the user the download path.
     logger.info('Downloaded {} to {}.'.format(url, directory))
 
-def download_lt(update=True):
+def download_lt(update=True, versions: list = []):
     # Original used a global variable. Keeps code consistent.
     download_folder = PACKAGE_PATH
     assert os.path.isdir(download_folder)
@@ -139,16 +139,16 @@ def download_lt(update=True):
     ]
     #commented out since language tool did not make this check
     #confirm_java_compatibility()
-    version = LATEST_VERSION
-    filename = FILENAME.format(version=version)
-    language_tool_download_url = urljoin(BASE_URL, filename)
-    dirname = os.path.splitext(filename)[0]
-    extract_path = os.path.join(download_folder, dirname)
+    for version in versions:
+        filename = FILENAME.format(version=version)
+        language_tool_download_url = urljoin(BASE_URL, filename)
+        dirname = os.path.splitext(filename)[0]
+        extract_path = os.path.join(download_folder, dirname)
 
-    if extract_path in old_path_list:
-        return
+        if extract_path in old_path_list:
+            continue
 
-    download_zip(language_tool_download_url, download_folder)
+        download_zip(language_tool_download_url, download_folder)
 
 if __name__ == '__main__':
-    sys.exit(download_lt(update=True))
+    sys.exit(download_lt(update=True, versions=[LATEST_VERSION]))

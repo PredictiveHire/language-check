@@ -181,11 +181,12 @@ class LanguageTool:
     _remote = False
     _port = _MIN_PORT
     _server = None
+    _version = None
     _consumer_thread = None
     _instances = WeakValueDictionary()
     _PORT_RE = re.compile(r"(?:https?://.*:|port\s+)(\d+)", re.I)
 
-    def __init__(self, language=None, motherTongue=None, remote_server=None):
+    def __init__(self, language=None, motherTongue=None, remote_server=None, version="3.2",):
         if remote_server is not None:
             self._remote = True
             self._HOST = remote_server["host"]
@@ -193,6 +194,7 @@ class LanguageTool:
             self._url = 'http://{}:{}'.format(self._HOST, self._port)
             self._update_remote_server_config(self._url)
         elif not self._server_is_alive():
+            self._version = version
             self._start_server_on_free_port()
         if language is None:
             try:
@@ -342,7 +344,7 @@ class LanguageTool:
     def _start_local_server(cls):
         err = None
         try:
-            server_cmd = get_server_cmd(cls._port)
+            server_cmd = get_server_cmd(cls._port, cls._version)
         except PathError as e:
             # Can't find path to LanguageTool.
             err = e
@@ -542,7 +544,7 @@ def get_languages() -> set:
     return languages
 
 
-def get_directory():
+def get_directory(version=None):
     """Get LanguageTool directory."""
     try:
         language_check_dir = cache['language_check_dir']
@@ -560,7 +562,7 @@ def get_directory():
             return max(paths, key=version_key) if paths else None
 
         base_dir = os.path.dirname(sys.argv[0])
-        language_check_dir = get_lt_dir(base_dir)
+        language_check_dir = get_lt_dir(base_dir) if version is None else os.path.join(base_dir, 'LanguageTool-{}'.format(version))
         if not language_check_dir:
             try:
                 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -589,25 +591,25 @@ def set_directory(path=None):
             raise
 
 
-def get_server_cmd(port=None):
+def get_server_cmd(port=None, version=None):
     try:
         cmd = cache['server_cmd']
     except KeyError:
-        java_path, jar_path = get_jar_info()
+        java_path, jar_path = get_jar_info(version=version)
         cmd = [java_path, '-cp', jar_path,
                'org.languagetool.server.HTTPServer']
         cache['server_cmd'] = cmd
     return cmd if port is None else cmd + ['-p', str(port)]
 
 
-def get_jar_info():
+def get_jar_info(version=None):
     try:
         java_path, jar_path = cache['jar_info']
     except KeyError:
         java_path = which('java')
         if not java_path:
             raise JavaError("can't find Java")
-        dir_name = get_directory()
+        dir_name = get_directory(version=version)
         jar_path = None
         for jar_name in JAR_NAMES:
             for jar_path in glob.glob(os.path.join(dir_name, jar_name)):

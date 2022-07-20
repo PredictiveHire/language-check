@@ -581,7 +581,7 @@ def language_tool_hook(config):
         del config['files']['package_data']
     elif any(arg.startswith(('install', 'build', 'bdist'))
              for arg in sys.argv):
-        download_lt()
+        download_lt(versions=["3.2", "5.8"])
 
 
 def main():
